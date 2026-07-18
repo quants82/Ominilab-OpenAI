@@ -8,3 +8,6 @@ __pycache__/
 frontend_Ominilab/node_modules/
 frontend_Ominilab/dist/
 frontend_Ominilab/.astro/
+
+# Personal working files
+/Me/
