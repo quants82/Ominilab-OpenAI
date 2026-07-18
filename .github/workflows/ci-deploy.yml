@@ -81,10 +81,24 @@ jobs:
     steps:
       - name: Configure deployment SSH key
         env:
-          SSH_PRIVATE_KEY_BASE64: ${{ secrets.OMINILAB_SSH_PRIVATE_KEY_B64 }}
+          SSH_PRIVATE_KEY_MATERIAL: ${{ secrets.OMINILAB_SSH_PRIVATE_KEY_B64 }}
         run: |
           install -m 0700 -d ~/.ssh
-          printf '%s' "$SSH_PRIVATE_KEY_BASE64" | base64 --decode > ~/.ssh/ominilab_deploy
+
+          if [[ -z "$SSH_PRIVATE_KEY_MATERIAL" ]]; then
+            echo "::error::OMINILAB_SSH_PRIVATE_KEY_B64 is missing or empty."
+            exit 1
+          fi
+
+          if [[ "$SSH_PRIVATE_KEY_MATERIAL" == *"BEGIN OPENSSH PRIVATE KEY"* ]]; then
+            printf '%s\n' "$SSH_PRIVATE_KEY_MATERIAL" |
+              tr -d '\r' > ~/.ssh/ominilab_deploy
+          else
+            printf '%s' "$SSH_PRIVATE_KEY_MATERIAL" |
+              tr -d '[:space:]' |
+              base64 --decode > ~/.ssh/ominilab_deploy
+          fi
+
           chmod 0600 ~/.ssh/ominilab_deploy
           ssh-keygen -y -f ~/.ssh/ominilab_deploy > /dev/null
           printf '%s\n' \
