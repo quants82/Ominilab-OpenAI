@@ -1,0 +1,11 @@
+
+---
+import Layout from '../layouts/Layout.astro';
+import LampVAExperiment from '../components/LampVAExperiment';
+---
+
+<Layout title="Incandescent Lamp I-V Characteristic — OmniLab">
+    <main>
+        <LampVAExperiment client:only="react" />
+    </main>
+</Layout>

@@ -1,0 +1,33 @@
+{
+    "name": "omnilab-open-physics",
+    "version": "1.0.0",
+    "description": "Open ESP32 physics laboratory for six focused experiments",
+    "type": "module",
+    "scripts": {
+        "dev": "astro dev --port 3003",
+        "build": "astro build",
+        "preview": "astro preview",
+        "astro": "astro"
+    },
+    "dependencies": {
+        "@astrojs/react": "^3.6.2",
+        "@astrojs/tailwind": "^5.1.1",
+        "astro": "^4.15.12",
+        "chart.js": "^4.5.1",
+        "esptool-js": "^0.6.0",
+        "katex": "^0.16.44",
+        "lucide-react": "^0.460.0",
+        "react": "^18.3.1",
+        "react-chartjs-2": "^5.3.1",
+        "react-dom": "^18.3.1",
+        "react-katex": "^3.1.0",
+        "regression": "^2.0.1",
+        "tailwindcss": "^3.4.14"
+    },
+    "devDependencies": {
+        "@types/react": "^18.3.12",
+        "@types/react-dom": "^18.3.1",
+        "@types/react-katex": "^3.0.4",
+        "typescript": "^5.6.3"
+    }
+}

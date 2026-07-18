@@ -1,0 +1,77 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'An open, AI-assisted physics laboratory powered by ESP32 and real experimental data.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#1d4ed8" />
+    <link rel="icon" type="image/png" href="/images/logo.png" />
+    <title>{title}</title>
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <div class="flex min-h-screen flex-col">
+      <header class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+          <a href="/" class="flex items-center gap-3">
+            <img src="/images/logo.png" alt="OmniLab" class="h-10 w-10 rounded-xl object-cover" />
+            <div>
+              <div class="font-black text-slate-900">OmniLab</div>
+              <div class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Open Physics Sandbox</div>
+            </div>
+          </a>
+          <nav class="hidden items-center gap-6 text-sm font-bold text-slate-600 md:flex">
+            <a href="/" class="hover:text-blue-700">Home</a>
+            <a href="/experiments" class="hover:text-blue-700">Experiments</a>
+            <a href="/nap-firmware" class="hover:text-blue-700">Flash ESP32</a>
+            <a href="http://localhost:8000/docs" class="hover:text-blue-700">Open API</a>
+          </nav>
+          <Header client:load />
+        </div>
+      </header>
+
+      <main class="flex-1"><slot /></main>
+
+      <footer class="border-t border-slate-800 bg-slate-950 text-slate-300">
+        <div class="mx-auto grid max-w-7xl gap-6 px-4 py-10 md:grid-cols-2">
+          <div>
+            <div class="text-lg font-black text-white">OmniLab</div>
+            <p class="mt-2 max-w-xl text-sm leading-relaxed">Six open-source ESP32 experiments, real-time WebSocket data, browser-based firmware flashing, and GPT-5.6 experiment feedback.</p>
+          </div>
+          <div class="md:text-right">
+            <p class="text-sm">Built for OpenAI Build Week 2026</p>
+            <p class="mt-1 text-xs text-slate-500">Based on the existing VatLi365 educational interface and hardware foundation.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      const protectedPaths = [
+        '/harmonic-motion-bmi160', '/specific-heat', '/induction', '/capacitor',
+        '/lamp-va', '/resistor-va', '/nap-firmware'
+      ];
+      const path = window.location.pathname.replace(/\/$/, '');
+      if (protectedPaths.includes(path) && !localStorage.getItem('jwt_token')) {
+        const notice = document.createElement('div');
+        notice.className = 'fixed inset-x-0 bottom-5 z-[70] mx-auto max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center text-sm font-semibold text-amber-900 shadow-xl';
+        notice.textContent = 'Sign in from the top-right corner to use this experiment.';
+        document.body.appendChild(notice);
+      }
+    </script>
+  </body>
+</html>

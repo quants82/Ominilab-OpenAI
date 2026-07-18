@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+import HarmonicMotionBMI160Experiment from '../components/HarmonicMotionBMI160Experiment';
+---
+
+<Layout title="Harmonic Motion with BMI160 — OmniLab">
+    <main>
+        <HarmonicMotionBMI160Experiment client:only="react" />
+    </main>
+</Layout>
+
+<style>
+    main {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100vh;
+        background: #020617;
+    }
+</style>

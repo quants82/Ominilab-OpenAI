@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ESP32Flasher from '../components/ESP32Flasher';
+---
+
+<Layout title="Flash ESP32 — OmniLab" description="Flash the public OmniLab MicroPython experiment firmware directly from Chrome or Edge.">
+  <ESP32Flasher client:only="react" />
+</Layout>
