@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -8,7 +9,7 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -20,7 +21,7 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
     if (ok) onClose();
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-slate-950/65 p-4 backdrop-blur-sm">
       <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-3xl bg-white shadow-2xl">
         <div className="bg-gradient-to-r from-blue-700 to-indigo-700 px-7 py-6 text-white">
@@ -49,6 +50,7 @@ export default function LoginModal({ isOpen, onClose }: { isOpen: boolean; onClo
           <button type="button" onClick={onClose} className="w-full text-sm text-slate-500">Close</button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
