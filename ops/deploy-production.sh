@@ -9,7 +9,7 @@ VENV="/var/www/ominilab.vatli365.vn/venv"
 
 exec 9>/run/lock/ominilab-deploy.lock
 if ! flock -n 9; then
-    echo "Another OmniLab deployment is already running."
+    echo "Another OminiLab deployment is already running."
     exit 1
 fi
 
@@ -55,7 +55,7 @@ for attempt in {1..15}; do
         http://127.0.0.1:8010/api/lab/health
     then
         echo
-        echo "OmniLab deployment completed successfully."
+        echo "OminiLab deployment completed successfully."
         exit 0
     fi
     sleep 1

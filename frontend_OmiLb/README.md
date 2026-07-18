@@ -1,4 +1,4 @@
-# OmniLab Frontend
+# OminiLab Frontend
 
 English-first Astro/React interface for six open ESP32 physics experiments.
 

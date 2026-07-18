@@ -1,5 +1,5 @@
 {
-    "name": "omnilab-open-physics",
+    "name": "ominilab-open-physics",
     "version": "1.0.0",
     "description": "Open ESP32 physics laboratory for six focused experiments",
     "type": "module",

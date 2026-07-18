@@ -92,7 +92,7 @@ jobs:
             > ~/.ssh/known_hosts
           chmod 0600 ~/.ssh/known_hosts
 
-      - name: Deploy OmniLab
+      - name: Deploy OminiLab
         run: >-
           ssh
           -i ~/.ssh/ominilab_deploy

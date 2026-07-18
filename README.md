@@ -1,6 +1,6 @@
-# OmniLab: AI-Powered Open Physics Sandbox
+# OminiLab: AI-Powered Open Physics Sandbox
 
-OmniLab turns low-cost ESP32 components into an open, globally accessible physics laboratory. Students flash public MicroPython firmware, stream real measurements to a browser, inspect live charts, and receive experiment-grounded feedback from GPT-5.6.
+OminiLab turns low-cost ESP32 components into an open, globally accessible physics laboratory. Students flash public MicroPython firmware, stream real measurements to a browser, inspect live charts, and receive experiment-grounded feedback from GPT-5.6.
 
 ## Six focused experiments
 

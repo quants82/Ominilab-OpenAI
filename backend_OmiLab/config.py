@@ -18,7 +18,7 @@ def _path_from_env(name: str, default: Path) -> Path:
 
 @dataclass(frozen=True)
 class Settings:
-    app_name: str = os.getenv("APP_NAME", "OmniLab Open Physics Backend")
+    app_name: str = os.getenv("APP_NAME", "OminiLab Open Physics Backend")
     app_secret: str = os.getenv("APP_SECRET", "development-only-change-me")
     database_path: Path = _path_from_env("DATABASE_PATH", BASE_DIR / "data" / "omnilab.db")
     access_token_minutes: int = int(os.getenv("ACCESS_TOKEN_MINUTES", "1440"))

@@ -1,4 +1,4 @@
-# OmniLab Backend
+# OminiLab Backend
 
 Minimal, open-source FastAPI backend for six ESP32 physics experiments:
 
