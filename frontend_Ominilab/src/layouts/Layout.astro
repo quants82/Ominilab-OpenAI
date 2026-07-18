@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import Header from '../components/Header';
+import { API_CONFIG } from '../config/api.config';
 
 interface Props {
   title: string;
@@ -11,6 +12,7 @@ const {
   title,
   description = 'An open, AI-assisted physics laboratory powered by ESP32 and real experimental data.',
 } = Astro.props;
+const openApiUrl = `${API_CONFIG.python.apiUrl}/docs`;
 ---
 
 <!doctype html>
@@ -38,7 +40,7 @@ const {
             <a href="/" class="hover:text-blue-700">Home</a>
             <a href="/experiments" class="hover:text-blue-700">Experiments</a>
             <a href="/nap-firmware" class="hover:text-blue-700">Flash ESP32</a>
-            <a href="http://localhost:8000/docs" class="hover:text-blue-700">Open API</a>
+            <a href={openApiUrl} class="hover:text-blue-700">Open API</a>
           </nav>
           <Header client:load />
         </div>

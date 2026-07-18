@@ -1,0 +1,4 @@
+interface:
+  display_name: "Change Ominilab Experiment"
+  short_description: "Update an experiment across firmware, API, and UI"
+  default_prompt: "Use $change-ominilab-experiment to update this physics experiment end to end."

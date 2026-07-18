@@ -1,0 +1,4 @@
+interface:
+  display_name: "Maintain Ominilab"
+  short_description: "Implement and verify Ominilab code changes"
+  default_prompt: "Use $maintain-ominilab to implement and verify this change safely."

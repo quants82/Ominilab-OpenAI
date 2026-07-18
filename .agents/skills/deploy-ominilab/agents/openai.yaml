@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deploy Ominilab"
+  short_description: "Deploy, verify, and recover Ominilab production"
+  default_prompt: "Use $deploy-ominilab to deploy and verify Ominilab production safely."
