@@ -205,7 +205,7 @@ function SpecificHeatExperiment() {
             <div className="max-w-7xl mx-auto space-y-6">
                 <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-800"><span className="text-blue-600">Omni</span>Lab Physics</h1>
+                        <h1 className="text-2xl font-black text-slate-800"><span className="text-blue-600">Omini</span>lab Physics</h1>
                         <p className="text-slate-500 text-sm">Specific Heat Capacity of Water</p>
                     </div>
                     <div className="flex gap-4 items-center">

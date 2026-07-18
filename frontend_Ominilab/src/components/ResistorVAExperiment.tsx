@@ -272,7 +272,7 @@ function ResistorVAContent() {
                 </div>
             </main>
             <div className="max-w-7xl mx-auto w-full">
-                <ExperimentTheory id="va-characteristic" />
+                <ExperimentTheory id="resistor-va" />
             </div>
         </div>
     );
