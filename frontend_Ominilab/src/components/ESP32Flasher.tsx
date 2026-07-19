@@ -116,6 +116,7 @@ function Flasher() {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [log, setLog] = useState('');
   const terminalLog = useRef('');
 
   useEffect(() => {
@@ -126,9 +127,9 @@ function Flasher() {
   }, [isAuthenticated]);
 
   const terminal = {
-    clean: () => { terminalLog.current = ''; },
-    write: (value: string) => { terminalLog.current += value; },
-    writeLine: (value: string) => { terminalLog.current += `${value}\n`; },
+    clean: () => { terminalLog.current = ''; setLog(''); },
+    write: (value: string) => { terminalLog.current += value; setLog(terminalLog.current.slice(-4000)); },
+    writeLine: (value: string) => { terminalLog.current += `${value}\n`; setLog(terminalLog.current.slice(-4000)); },
   };
 
   const inspect = async () => {
@@ -172,9 +173,9 @@ function Flasher() {
       const base = new Uint8Array(await baseResponse.arrayBuffer());
       await loader.writeFlash({
         fileArray: [{ data: base, address: parseInt(build.address.replace(/^0x/i, ''), 16) || 0 }],
-        // compress:true stalled mid-write on the highly compressible
-        // MicroPython image (deflate block timeout); plain writes are reliable.
-        flashMode: 'keep', flashFreq: 'keep', flashSize: 'keep', eraseAll: true, compress: false,
+        // esptool-js 0.6.0 only implements compressed writes
+        // ("Yet to handle Non Compressed writes"), so compress must stay true.
+        flashMode: 'keep', flashFreq: 'keep', flashSize: 'keep', eraseAll: true, compress: true,
         reportProgress: (_index: number, written: number) => setProgress(Math.round((written / base.length) * 60)),
       } as any);
       try { await loader.after('hard_reset'); } catch { /* manual reset is acceptable */ }
@@ -227,6 +228,7 @@ function Flasher() {
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className={`h-full transition-all ${progress >= 100 ? 'bg-emerald-500' : 'bg-blue-600'}`} style={{width:`${progress}%`}}/></div>
         </div>}
+        {log && <pre className="mt-3 max-h-44 overflow-auto whitespace-pre-wrap rounded-xl bg-slate-900 p-3 font-mono text-[11px] leading-relaxed text-emerald-300">{log}</pre>}
         {!busy && progress >= 100 && !error && <div className="mt-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-5 text-center">
           <div className="flex items-center justify-center gap-2 text-2xl font-black text-emerald-600"><CheckCircle2 size={26}/> Success!</div>
           <p className="mt-2 text-sm leading-relaxed text-emerald-800">Firmware installed. Unplug and repower the ESP32, join its <span className="font-mono font-bold">Ominilab-Setup-…</span> Wi-Fi hotspot, open <span className="font-mono font-bold">192.168.4.1</span> to enter your Wi-Fi, then type the 12-character device ID into the experiment page.</p>
