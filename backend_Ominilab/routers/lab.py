@@ -161,7 +161,7 @@ def firmware_bundle(experiment_id: str, _: dict = Depends(current_user)) -> dict
     if item is None:
         raise HTTPException(status_code=404, detail="Unknown experiment")
     files = [_bundle_file(settings.firmware_source_dir / item["source"], "main.py", replace_host=True)]
-    files.extend(_bundle_file(settings.firmware_source_dir / name, name) for name in item["files"])
+    files.extend(_bundle_file(settings.firmware_source_dir / name, name, replace_host=True) for name in item["files"])
     return {"experiment_id": experiment_id, "mpy_version": 6, "files": files}
 
 
