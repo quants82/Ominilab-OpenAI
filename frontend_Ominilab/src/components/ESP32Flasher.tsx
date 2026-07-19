@@ -216,7 +216,21 @@ function Flasher() {
           {available.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
         </select>
         <button onClick={flash} disabled={busy || !selectedId} className="primary-button mt-4 w-full justify-center py-4">{busy ? <Loader2 className="animate-spin" size={18}/> : <Zap size={18}/>} Flash MicroPython + source</button>
-        {(busy || progress > 0) && <div className="mt-4"><div className="mb-1 text-right text-xs font-black text-blue-700">{progress}%</div><div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full bg-blue-600 transition-all" style={{width:`${progress}%`}}/></div></div>}
+        {(busy || progress > 0) && <div className="mt-4">
+          <div className="mb-1 flex items-center justify-between text-xs font-black">
+            <span className="text-slate-500">
+              {busy
+                ? (progress <= 60 ? 'Step 1/2 — Writing MicroPython image… (2–4 min, do not unplug)' : 'Step 2/2 — Copying experiment source…')
+                : progress >= 100 ? 'Completed' : 'Stopped — see the message above and retry'}
+            </span>
+            <span className="text-blue-700">{progress}%</span>
+          </div>
+          <div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className={`h-full transition-all ${progress >= 100 ? 'bg-emerald-500' : 'bg-blue-600'}`} style={{width:`${progress}%`}}/></div>
+        </div>}
+        {!busy && progress >= 100 && !error && <div className="mt-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-5 text-center">
+          <div className="flex items-center justify-center gap-2 text-2xl font-black text-emerald-600"><CheckCircle2 size={26}/> Success!</div>
+          <p className="mt-2 text-sm leading-relaxed text-emerald-800">Firmware installed. Unplug and repower the ESP32, join its <span className="font-mono font-bold">Ominilab-Setup-…</span> Wi-Fi hotspot, open <span className="font-mono font-bold">192.168.4.1</span> to enter your Wi-Fi, then type the 12-character device ID into the experiment page.</p>
+        </div>}
       </section>}
     </div>
     <style>{`.primary-button{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;background:#2563eb;color:white;padding:.75rem 1rem;font-size:.875rem;font-weight:800}.primary-button:disabled{opacity:.4}`}</style>
