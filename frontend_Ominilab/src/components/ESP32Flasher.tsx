@@ -35,6 +35,24 @@ async function api(path: string) {
   return body;
 }
 
+// USB-Serial-JTAG boards re-enumerate after the post-flash reset, so the
+// original SerialPort object can go stale; poll until a granted port opens.
+async function reacquirePort(previous: any): Promise<any> {
+  const deadline = Date.now() + 20000;
+  while (Date.now() < deadline) {
+    await wait(1500);
+    const granted = await (navigator as any).serial.getPorts().catch(() => []);
+    for (const candidate of [previous, ...granted]) {
+      try {
+        await candidate.open({ baudRate: 115200 });
+        await candidate.close();
+        return candidate;
+      } catch { /* not ready yet, try the next candidate */ }
+    }
+  }
+  throw new Error('The board did not come back after reset. Unplug it, plug it in again, and retry.');
+}
+
 async function uploadSourceBundle(port: any, bundle: Bundle, onProgress: (value: number) => void) {
   await port.open({ baudRate: 115200, bufferSize: 8192 });
   const reader = port.readable.getReader();
@@ -183,8 +201,10 @@ function Flasher() {
       try { await loader.after('hard_reset'); } catch { /* manual reset is acceptable */ }
       await transport.disconnect();
       transport = null;
-      await wait(2500);
-      await uploadSourceBundle(port, bundle, setProgress);
+      setProgress(62);
+      const uploadPort = await reacquirePort(port);
+      setPort(uploadPort);
+      await uploadSourceBundle(uploadPort, bundle, setProgress);
       setProgress(100);
       setMessage('Firmware installed. Configure Wi-Fi on the ESP32, then enter its 12-character device ID in the experiment page.');
     } catch (reason: any) {
