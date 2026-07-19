@@ -176,7 +176,9 @@ function Flasher() {
         // esptool-js 0.6.0 only implements compressed writes
         // ("Yet to handle Non Compressed writes"), so compress must stay true.
         flashMode: 'keep', flashFreq: 'keep', flashSize: 'keep', eraseAll: true, compress: true,
-        reportProgress: (_index: number, written: number) => setProgress(Math.round((written / base.length) * 60)),
+        // esptool-js reports compressed bytes; divide by its own total
+        // (not the uncompressed image size) so the bar reaches 60%.
+        reportProgress: (_index: number, written: number, total: number) => setProgress(Math.round((written / Math.max(total, 1)) * 60)),
       } as any);
       try { await loader.after('hard_reset'); } catch { /* manual reset is acceptable */ }
       await transport.disconnect();
