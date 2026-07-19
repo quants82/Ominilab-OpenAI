@@ -4,11 +4,11 @@ This document is English-first and ready to adapt into the Devpost form. Replace
 
 ## Project name
 
-Ominilab
+Ominilab - Open ESP32 Physics Labs, AI Graded by Real Data
 
 ## Tagline
 
-Open ESP32 physics labs where real measurements ground live analysis and GPT-5.6 feedback.
+Flash open MicroPython from the browser, stream real sensor data live, and let GPT-5.6 generate and grade questions grounded in the experiment you actually performed.
 
 ## Track
 

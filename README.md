@@ -1,4 +1,4 @@
-# Ominilab: Open Hardware, Real Physics, Grounded AI
+# Ominilab - Open ESP32 Physics Labs, AI Graded by Real Data
 
 [![Live demo](https://img.shields.io/badge/live-ominilab.vatli365.vn-0f766e)](https://ominilab.vatli365.vn)
 [![CI and deploy](https://github.com/quants82/Ominilab-OpenAI/actions/workflows/ci-deploy.yml/badge.svg)](https://github.com/quants82/Ominilab-OpenAI/actions/workflows/ci-deploy.yml)
