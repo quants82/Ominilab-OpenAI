@@ -42,6 +42,9 @@ function InductionExperimentContent() {
     const [renderTick, setRenderTick] = useState(0);
 
     const wsRef = useRef<WebSocket | null>(null);
+    const [isDemoMode, setIsDemoMode] = useState(false);
+    const demoTimer = useRef<any>(null);
+    const demoIndex = useRef<number>(0);
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const dragStartRef = useRef<{ x: number, offset: number } | null>(null);
     const dataBuffer = useRef<number[]>(new Array(HISTORY_LIMIT).fill(0));
@@ -184,7 +187,57 @@ function InductionExperimentContent() {
         setScrollOffset(0); setIsLive(true);
         if (isAutoMode) setZoomRange(800);
         processValue(0);
+        if (isDemoMode) stopDemo();
     };
+
+    const startJudgeDemo = () => {
+        if (wsRef.current) wsRef.current.close();
+        if (demoTimer.current) clearInterval(demoTimer.current);
+        setIsDemoMode(true);
+        setStatus('disconnected');
+        setStatusMsg('Synthetic Replay Running');
+        setIsLive(true);
+        setIsPaused(false);
+        setScrollOffset(0);
+
+        dataBuffer.current = new Array(HISTORY_LIMIT).fill(0);
+        demoIndex.current = 0;
+
+        demoTimer.current = setInterval(() => {
+            if (stateRefs.current.isPaused) return;
+            const idx = demoIndex.current;
+            const pulseCycle = idx % 200;
+            let val = (Math.random() - 0.5) * 15;
+            
+            if (pulseCycle >= 80 && pulseCycle < 140) {
+                const t_pulse = (pulseCycle - 110) / 12;
+                val = -1800 * t_pulse * Math.exp(-0.8 * t_pulse * t_pulse);
+            }
+            
+            dataBuffer.current.push(val);
+            if (dataBuffer.current.length > HISTORY_LIMIT) {
+                dataBuffer.current.shift();
+            }
+            setSignalVal(Math.round(val));
+            setRenderTick(prev => prev + 1);
+            demoIndex.current++;
+        }, 10);
+    };
+
+    const stopDemo = () => {
+        if (demoTimer.current) clearInterval(demoTimer.current);
+        demoTimer.current = null;
+        setIsDemoMode(false);
+        dataBuffer.current = new Array(HISTORY_LIMIT).fill(0);
+        setSignalVal(0);
+        setRenderTick(prev => prev + 1);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (demoTimer.current) clearInterval(demoTimer.current);
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-[#fdfcf0] text-slate-800 p-4 md:p-6 pb-20 flex flex-col gap-6 font-sans">
@@ -277,6 +330,14 @@ function InductionExperimentContent() {
                         <button onClick={() => setAiOpen(!aiOpen)} className={`w-full py-4 border-2 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all mt-4 ${aiOpen ? 'bg-purple-600 text-white border-purple-700' : 'bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100'}`}>
                             <Sparkles size={14} /> AI Analysis
                         </button>
+                        <button onClick={isDemoMode ? stopDemo : startJudgeDemo} className={`w-full py-4 border-2 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all mt-2 ${isDemoMode ? 'bg-violet-600 text-white border-violet-700 shadow-lg' : 'bg-violet-50 text-violet-600 border-violet-200 hover:bg-violet-100'}`}>
+                            <Activity size={14} /> {isDemoMode ? 'Stop Replay' : 'Run Judge Demo'}
+                        </button>
+                        {isDemoMode && (
+                            <p className="text-[9px] font-bold text-violet-800 bg-violet-50 border border-violet-200 rounded-xl px-3 py-2 leading-relaxed text-center">
+                                SYNTHETIC DATA: a simulated 100 Hz electromagnetic induction magnet drop.
+                            </p>
+                        )}
                     </div>
                 </div>
             </main>
@@ -284,12 +345,17 @@ function InductionExperimentContent() {
                 <div className="max-w-7xl mx-auto w-full mt-8">
                     <AIPanel
                         experimentId="induction"
-                        actualStats={status === 'connected' ? {
+                        actualStats={isDemoMode ? {
+                            dataSource: 'synthetic judge replay',
+                            frequency: 2.50,
+                            peakVoltage: 1.82,
+                            dt_transit: 0.082
+                        } : (status === 'connected' ? {
                             dataSource: 'physical induction sensor coil',
                             frequency: 2.45,
                             peakVoltage: Math.max(...dataBuffer.current.map(Math.abs)) / 1000.0,
                             dt_transit: 0.085
-                        } : null}
+                        } : null)}
                     />
                 </div>
             )}

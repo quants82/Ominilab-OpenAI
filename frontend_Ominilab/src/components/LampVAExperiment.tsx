@@ -44,6 +44,7 @@ function LampVAContent() {
     const [deviceId, setDeviceId] = useState('');
     const [liveVal, setLiveVal] = useState({ u: 0, i: 0, m: "N/A" });
     const [recordedPoints, setRecordedPoints] = useState<RecordPoint[]>([]);
+    const [isDemoMode, setIsDemoMode] = useState(false);
     const [savedExp, setSavedExp] = useState<SavedExperiment | null>(null);
 
     const ws = useRef<WebSocket | null>(null);
@@ -87,8 +88,30 @@ function LampVAContent() {
     }, [deviceId, status]);
 
     const handleRecord = () => {
-        if (status !== 'connected') return;
+        if (status !== 'connected' && !isDemoMode) return;
         setRecordedPoints(prev => [...prev, { id: Date.now(), u: liveVal.u, i: liveVal.i }]);
+    };
+
+    const startJudgeDemo = () => {
+        if (ws.current) ws.current.close();
+        setIsDemoMode(true);
+        setStatus('disconnected');
+        setStatusMsg('Synthetic Replay Running');
+        setRecordedPoints([
+            { id: 1, u: 0.5, i: 25.0 },
+            { id: 2, u: 1.0, i: 50.0 },
+            { id: 3, u: 2.0, i: 110.0 },
+            { id: 4, u: 3.0, i: 180.0 },
+            { id: 5, u: 4.0, i: 260.0 },
+            { id: 6, u: 5.0, i: 350.0 }
+        ]);
+        setLiveVal({ u: 5.0, i: 350.0, m: "synthetic" });
+    };
+
+    const stopDemo = () => {
+        setIsDemoMode(false);
+        setRecordedPoints([]);
+        setLiveVal({ u: 0, i: 0, m: "N/A" });
     };
 
     const calculateCurveFit = (points: RecordPoint[]) => {
@@ -180,8 +203,8 @@ function LampVAContent() {
                         </div>
                         <button
                             onClick={handleRecord}
-                            disabled={status !== 'connected'}
-                            className={`w-full py-8 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-2 shadow-lg ${status === 'connected' ? 'bg-blue-600 border-blue-700 text-white shadow-blue-100 hover:bg-blue-700' : 'bg-slate-50 border-slate-200 text-slate-300'}`}
+                            disabled={status !== 'connected' && !isDemoMode}
+                            className={`w-full py-8 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-2 shadow-lg ${status === 'connected' || isDemoMode ? 'bg-blue-600 border-blue-700 text-white shadow-blue-100 hover:bg-blue-700' : 'bg-slate-50 border-slate-200 text-slate-300'}`}
                         >
                             <Plus size={32} fill="currentColor"/>
                             <span className="text-xs font-black uppercase tracking-widest">Record point</span>
@@ -209,6 +232,14 @@ function LampVAContent() {
                     <button onClick={() => setAiOpen(!aiOpen)} className={`w-full py-4 border-2 rounded-[2rem] text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all mt-4 ${aiOpen ? 'bg-purple-600 text-white border-purple-700 shadow-lg' : 'bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100'}`}>
                         <Sparkles size={14} /> AI Analysis
                     </button>
+                    <button onClick={isDemoMode ? stopDemo : startJudgeDemo} className={`w-full py-4 border-2 rounded-[2rem] text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all mt-2 ${isDemoMode ? 'bg-violet-600 text-white border-violet-700 shadow-lg' : 'bg-violet-50 text-violet-600 border-violet-200 hover:bg-violet-100'}`}>
+                        <Activity size={14} /> {isDemoMode ? 'Stop Replay' : 'Run Judge Demo'}
+                    </button>
+                    {isDemoMode && (
+                        <p className="text-[9px] font-bold text-violet-800 bg-violet-50 border border-violet-200 rounded-xl px-3 py-2 leading-relaxed text-center">
+                            SYNTHETIC DATA: a simulated filament bulb non-linear I-V characteristic.
+                        </p>
+                    )}
                 </div>
 
                 {/* Right Panel */}
@@ -269,13 +300,19 @@ function LampVAContent() {
                 <div className="max-w-7xl mx-auto w-full mt-8">
                     <AIPanel
                         experimentId="lamp-va"
-                        actualStats={status === 'connected' && recordedPoints.length >= 5 ? {
+                        actualStats={isDemoMode ? {
+                            dataSource: 'synthetic judge replay',
+                            resistance_1V: 10.45,
+                            resistance_3V: 23.12,
+                            maxCurrent: 0.185,
+                            alpha: 1.42
+                        } : (status === 'connected' && recordedPoints.length >= 5 ? {
                             dataSource: 'physical filament bulb measurement',
                             resistance_1V: 11.2,
                             resistance_3V: 22.5,
                             maxCurrent: Math.max(...recordedPoints.map(p => p.i)) / 1000.0,
                             alpha: 1.45
-                        } : null}
+                        } : null)}
                     />
                 </div>
             )}

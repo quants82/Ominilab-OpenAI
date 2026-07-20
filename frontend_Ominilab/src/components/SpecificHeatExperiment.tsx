@@ -35,6 +35,7 @@ function SpecificHeatExperiment() {
 
     // Records
     const [recordedPoints, setRecordedPoints] = useState<HeatData[]>([]);
+    const [isDemoMode, setIsDemoMode] = useState(false);
     const [aiOpen, setAiOpen] = useState(false);
 
     // Connection Status Log
@@ -56,7 +57,6 @@ function SpecificHeatExperiment() {
         return () => window.clearInterval(id);
     }, []);
 
-    // --- WebSocket ---
     const toggleConnection = () => {
         if (isConnected) {
             if (wsRef.current) {
@@ -66,6 +66,7 @@ function SpecificHeatExperiment() {
             setIsConnected(false);
             setWsStatus("Disconnected manually");
         } else {
+            setIsDemoMode(false);
             connectWs();
         }
     };
@@ -153,6 +154,35 @@ function SpecificHeatExperiment() {
 
     const deletePoint = (id: number) => {
         setRecordedPoints(prev => prev.filter(p => p.id !== id));
+    };
+
+    const startJudgeDemo = () => {
+        setIsConnected(false);
+        setMassWater(0.181);
+        setRecordedPoints([
+            { id: 1, time: 5.0, temp: 24.813, power: 20.57 },
+            { id: 2, time: 46.2, temp: 25.500, power: 20.80 },
+            { id: 3, time: 138.1, temp: 28.063, power: 20.57 },
+            { id: 4, time: 177.2, temp: 28.938, power: 21.05 },
+            { id: 5, time: 201.7, temp: 29.625, power: 21.63 },
+            { id: 6, time: 225.3, temp: 30.188, power: 20.97 },
+            { id: 7, time: 253.5, temp: 31.063, power: 20.92 },
+            { id: 8, time: 294.1, temp: 32.313, power: 20.80 },
+            { id: 9, time: 318.5, temp: 32.875, power: 20.80 },
+            { id: 10, time: 333.0, temp: 33.125, power: 20.80 }
+        ]);
+        setCurrentTemp(33.125);
+        setCurrentPower(20.80);
+        setCurrentTime(333);
+        setIsDemoMode(true);
+    };
+
+    const stopDemo = () => {
+        setRecordedPoints([]);
+        setCurrentTemp(0);
+        setCurrentPower(0);
+        setCurrentTime(0);
+        setIsDemoMode(false);
     };
 
     const analyzeData = () => {
@@ -256,6 +286,17 @@ function SpecificHeatExperiment() {
                                 <label className="block text-xs font-bold text-slate-500 mb-1">Water mass (kg)</label>
                                 <input type="number" value={massWater} onChange={e => setMassWater(parseFloat(e.target.value) || 0)} step="0.001" className="w-full border p-2 rounded-lg bg-slate-50 font-mono text-sm outline-none" />
                             </div>
+                            <button
+                                onClick={isDemoMode ? stopDemo : startJudgeDemo}
+                                className={`w-full py-3 rounded-xl border-2 text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${isDemoMode ? 'bg-violet-600 text-white border-violet-700' : 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100'}`}
+                            >
+                                <Sparkles size={14}/>{isDemoMode ? 'Stop synthetic replay' : 'Run hardware-free judge demo'}
+                            </button>
+                            {isDemoMode && (
+                                <p className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-[9px] font-bold leading-relaxed text-violet-800">
+                                    SYNTHETIC DATA: a labeled linear heating replay for product evaluation.
+                                </p>
+                            )}
                         </div>
                         <div className="bg-amber-50 text-gray-900 p-6 rounded-2xl shadow-lg border border-amber-200 space-y-6">
                             <div className="grid grid-cols-2 gap-4">

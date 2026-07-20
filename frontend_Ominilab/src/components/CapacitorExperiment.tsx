@@ -41,6 +41,8 @@ function CapacitorExperimentContent() {
     const [isPhysicalSwitchOn, setIsPhysicalSwitchOn] = useState(false);
     const [capacitance, setCapacitance] = useState(1000);
     const [liveVal, setLiveVal] = useState({ v: 0, i: 0, w: 0 });
+    const [isDemoMode, setIsDemoMode] = useState(false);
+    const demoTimer = useRef<any>(null);
 
     // MẶC ĐỊNH: Chỉ hiện q theo t
     const [showU, setShowU] = useState(false);
@@ -153,6 +155,79 @@ function CapacitorExperimentContent() {
         socket.onclose = () => { setStatus('disconnected'); setStatusMsg('Disconnected'); clearInterval(renderInterval.current); };
         ws.current = socket;
     }, [deviceId, capacitance, status]);
+
+    const startJudgeDemo = () => {
+        if (ws.current) ws.current.close();
+        if (demoTimer.current) clearInterval(demoTimer.current);
+        if (renderInterval.current) clearInterval(renderInterval.current);
+
+        setIsDemoMode(true);
+        setStatus('disconnected');
+        setStatusMsg('Synthetic Replay Running');
+        allPointsRef.current = [];
+        relationPointsRef.current = [];
+        startTimeRef.current = Date.now();
+        lastElapsedRef.current = 0;
+
+        let elapsed = 0;
+        const C = capacitance / 1000000;
+        const R = 4720;
+        const tau = 4.72;
+        const maxV = 3.55;
+
+        demoTimer.current = setInterval(() => {
+            elapsed += 0.1;
+            const cycleTime = 15;
+            const t_in_cycle = elapsed % (2 * cycleTime);
+            const isCharging = t_in_cycle < cycleTime;
+            const sw = isCharging ? 1 : 0;
+            const t_local = t_in_cycle % cycleTime;
+
+            let v = 0;
+            let i = 0;
+
+            if (isCharging) {
+                v = maxV * (1 - Math.exp(-t_local / tau));
+                i = (maxV / R) * Math.exp(-t_local / tau) * 1000;
+            } else {
+                v = maxV * Math.exp(-t_local / tau);
+                i = -(maxV / R) * Math.exp(-t_local / tau) * 1000;
+            }
+
+            v += (Math.random() - 0.5) * 0.03;
+            i += (Math.random() - 0.5) * 0.03;
+
+            const q = v * capacitance / 1000;
+            const w = 0.5 * (capacitance / 1000) * v * v;
+
+            const p: DataPoint = { x: elapsed, v, i, sw, q, w };
+            allPointsRef.current.push(p);
+
+            if (allPointsRef.current.length > 500) {
+                allPointsRef.current.shift();
+            }
+
+            setLiveVal({ v, i, w });
+            setIsPhysicalSwitchOn(isCharging);
+            setDisplayPoints([...allPointsRef.current]);
+        }, 100);
+    };
+
+    const stopDemo = () => {
+        if (demoTimer.current) clearInterval(demoTimer.current);
+        demoTimer.current = null;
+        setIsDemoMode(false);
+        allPointsRef.current = [];
+        setDisplayPoints([]);
+        setLiveVal({ v: 0, i: 0, w: 0 });
+    };
+
+    useEffect(() => {
+        return () => {
+            if (demoTimer.current) clearInterval(demoTimer.current);
+            if (renderInterval.current) clearInterval(renderInterval.current);
+        };
+    }, []);
 
     const dynamicScales = useMemo(() => {
         const points = displayMode === 'time' ? displayPoints : relationPointsRef.current;
@@ -391,6 +466,15 @@ function CapacitorExperimentContent() {
                             <div className="flex items-center gap-3"><Sparkles size={18} /> AI Analysis</div>
                             {aiOpen && <Zap size={14} fill="white"/>}
                         </button>
+                        <button onClick={isDemoMode ? stopDemo : startJudgeDemo} className={`flex items-center justify-between px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest transition-all ${isDemoMode ? 'bg-violet-600 text-white border-violet-700 shadow-lg shadow-violet-100' : 'bg-violet-50 text-violet-600 hover:bg-violet-100 border border-violet-100'}`}>
+                            <div className="flex items-center gap-3"><Activity size={18} /> {isDemoMode ? 'Stop Replay' : 'Run Judge Demo'}</div>
+                            {isDemoMode && <Zap size={14} fill="white"/>}
+                        </button>
+                        {isDemoMode && (
+                            <p className="text-[9px] font-bold text-violet-800 bg-violet-50 border border-violet-200 rounded-xl px-3 py-2 leading-relaxed text-center">
+                                SYNTHETIC DATA: a simulated 10 Hz capacitor charge/discharge curve.
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -473,13 +557,19 @@ function CapacitorExperimentContent() {
                 <div className="max-w-7xl mx-auto w-full mt-8">
                     <AIPanel
                         experimentId="capacitor"
-                        actualStats={status === 'connected' && allPointsRef.current.length >= 50 ? {
+                        actualStats={isDemoMode ? {
+                            dataSource: 'synthetic judge replay',
+                            capacitance: capacitance * 1e-6,
+                            tau: 4.72,
+                            maxVoltage: 3.55,
+                            storedEnergy: 0.5 * (capacitance * 1e-6) * Math.pow(3.55, 2) * 1000.0
+                        } : (status === 'connected' && allPointsRef.current.length >= 50 ? {
                             dataSource: 'physical capacitor transient measurement',
                             capacitance: capacitance * 1e-6,
                             tau: 4.70,
                             maxVoltage: Math.max(...allPointsRef.current.map(p => p.v)),
                             storedEnergy: 0.5 * (capacitance * 1e-6) * Math.pow(Math.max(...allPointsRef.current.map(p => p.v)), 2) * 1000.0
-                        } : null}
+                        } : null)}
                     />
                 </div>
             )}

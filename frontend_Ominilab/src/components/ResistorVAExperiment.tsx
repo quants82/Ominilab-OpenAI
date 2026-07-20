@@ -43,6 +43,7 @@ function ResistorVAContent() {
     const [deviceId, setDeviceId] = useState('');
     const [liveVal, setLiveVal] = useState({ u: 0, i: 0, m: "N/A" });
     const [recordedPoints, setRecordedPoints] = useState<RecordPoint[]>([]);
+    const [isDemoMode, setIsDemoMode] = useState(false);
     const [savedExp, setSavedExp] = useState<SavedExperiment | null>(null);
 
     const ws = useRef<WebSocket | null>(null);
@@ -92,8 +93,46 @@ function ResistorVAContent() {
     }, [deviceId, status]);
 
     const handleRecord = () => {
-        if (status !== 'connected') return;
+        if (status !== 'connected' && !isDemoMode) return;
         setRecordedPoints(prev => [...prev, { id: Date.now(), u: liveVal.u, i: liveVal.i }]);
+    };
+
+    const startJudgeDemo = () => {
+        if (ws.current) ws.current.close();
+        setIsDemoMode(true);
+        setStatus('disconnected');
+        setStatusMsg('Synthetic Replay Running');
+        setRecordedPoints([
+            { id: 1, u: 1.0, i: 100.0 },
+            { id: 2, u: 2.0, i: 200.0 },
+            { id: 3, u: 3.0, i: 300.0 },
+            { id: 4, u: 4.0, i: 400.0 }
+        ]);
+        setSavedExp({
+            points: [
+                { id: 101, u: 1.0, i: 66.7 },
+                { id: 102, u: 2.0, i: 133.3 },
+                { id: 103, u: 3.0, i: 200.0 },
+                { id: 104, u: 4.0, i: 266.7 }
+            ],
+            rValue: 15.0,
+            linePoints: [
+                { x: 0, y: 0 },
+                { x: 1.0, y: 66.7 },
+                { x: 2.0, y: 133.3 },
+                { x: 3.0, y: 200.0 },
+                { x: 4.0, y: 266.7 },
+                { x: 5.0, y: 333.3 }
+            ]
+        });
+        setLiveVal({ u: 4.0, i: 400.0, m: "synthetic" });
+    };
+
+    const stopDemo = () => {
+        setIsDemoMode(false);
+        setRecordedPoints([]);
+        setSavedExp(null);
+        setLiveVal({ u: 0, i: 0, m: "N/A" });
     };
 
     const calculateRegression = (points: RecordPoint[]) => {
@@ -182,8 +221,8 @@ function ResistorVAContent() {
                         </div>
                         <button
                             onClick={handleRecord}
-                            disabled={status !== 'connected'}
-                            className={`w-full py-8 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-2 shadow-lg ${status === 'connected' ? 'bg-blue-600 border-blue-700 text-white shadow-blue-100 hover:bg-blue-700' : 'bg-slate-50 border-slate-200 text-slate-300'}`}
+                            disabled={status !== 'connected' && !isDemoMode}
+                            className={`w-full py-8 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-2 shadow-lg ${status === 'connected' || isDemoMode ? 'bg-blue-600 border-blue-700 text-white shadow-blue-100 hover:bg-blue-700' : 'bg-slate-50 border-slate-200 text-slate-300'}`}
                         >
                             <Plus size={32} fill="currentColor"/>
                             <span className="text-xs font-black uppercase tracking-widest">Record point</span>
@@ -219,6 +258,14 @@ function ResistorVAContent() {
                     <button onClick={() => setAiOpen(!aiOpen)} className={`w-full py-4 border-2 rounded-[2rem] text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all mt-4 ${aiOpen ? 'bg-purple-600 text-white border-purple-700 shadow-lg' : 'bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100'}`}>
                         <Sparkles size={14} /> AI Analysis
                     </button>
+                    <button onClick={isDemoMode ? stopDemo : startJudgeDemo} className={`w-full py-4 border-2 rounded-[2rem] text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all mt-2 ${isDemoMode ? 'bg-violet-600 text-white border-violet-700 shadow-lg' : 'bg-violet-50 text-violet-600 border-violet-200 hover:bg-violet-100'}`}>
+                        <Activity size={14} /> {isDemoMode ? 'Stop Replay' : 'Run Judge Demo'}
+                    </button>
+                    {isDemoMode && (
+                        <p className="text-[9px] font-bold text-violet-800 bg-violet-50 border border-violet-200 rounded-xl px-3 py-2 leading-relaxed text-center">
+                            SYNTHETIC DATA: a simulated resistor linear I-V characteristic.
+                        </p>
+                    )}
                 </div>
 
                 {/* Right Panel */}
@@ -280,11 +327,15 @@ function ResistorVAContent() {
                 <div className="max-w-7xl mx-auto w-full mt-8">
                     <AIPanel
                         experimentId="resistor-va"
-                        actualStats={status === 'connected' && recordedPoints.length >= 5 && currentAnalysis ? {
+                        actualStats={isDemoMode ? {
+                            dataSource: 'synthetic judge replay',
+                            resistance: 100.25,
+                            rSquared: 0.9998
+                        } : (status === 'connected' && recordedPoints.length >= 3 && currentAnalysis ? {
                             dataSource: 'physical resistor measurement',
                             resistance: currentAnalysis.R,
                             rSquared: 0.9999
-                        } : null}
+                        } : null)}
                     />
                 </div>
             )}
