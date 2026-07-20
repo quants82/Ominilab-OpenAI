@@ -55,6 +55,14 @@ async function reacquirePort(previous: any): Promise<any> {
 
 async function uploadSourceBundle(port: any, bundle: Bundle, onProgress: (value: number) => void) {
   await port.open({ baudRate: 115200, bufferSize: 8192 });
+  // Opening a CP210x/CH340 port can glitch DTR/RTS and reset classic ESP32
+  // boards into the bootloader (GPIO0 low). Pulse RTS with DTR released so
+  // the chip reboots into MicroPython instead.
+  try {
+    await port.setSignals({ dataTerminalReady: false, requestToSend: true });
+    await wait(100);
+    await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+  } catch { /* some adapters do not expose control signals */ }
   const reader = port.readable.getReader();
   const writer = port.writable.getWriter();
   const encoder = new TextEncoder();
@@ -88,10 +96,14 @@ async function uploadSourceBundle(port: any, bundle: Bundle, onProgress: (value:
 
   try {
     responseBuffer = '';
-    await write('\x03\x03\x01');
-    const deadline = Date.now() + 12000;
+    // The first boot after a full erase formats the filesystem (5-10 s on a
+    // 4 MB classic ESP32), so keep re-sending Ctrl-C Ctrl-C Ctrl-A until the
+    // REPL answers instead of poking it once.
+    const deadline = Date.now() + 25000;
+    let lastPoke = 0;
     while (!(responseBuffer.includes('raw REPL') && responseBuffer.includes('>'))) {
       if (Date.now() > deadline) throw new Error('Could not enter MicroPython raw REPL.');
+      if (Date.now() - lastPoke > 1500) { lastPoke = Date.now(); await write('\x03\x03\x01'); }
       await wait(30);
     }
 
