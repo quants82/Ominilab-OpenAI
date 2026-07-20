@@ -19,8 +19,9 @@ import { Scatter } from 'react-chartjs-2';
 import regression from 'regression';
 import {
     Trash2, Globe, Wifi, Cpu, Power, RefreshCw, Activity,
-    Zap, Lock, Plus, Lightbulb, WifiOff, Disc, Timer, Ruler
+    Zap, Lock, Plus, Lightbulb, WifiOff, Disc, Timer, Ruler, Sparkles
 } from 'lucide-react';
+import AIPanel from './shared/AIPanel';
 
 ChartJS.register(LinearScale, CategoryScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -38,6 +39,7 @@ interface SavedExperiment {
 
 function LampVAContent() {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+    const [aiOpen, setAiOpen] = useState(false);
     const [statusMsg, setStatusMsg] = useState('Enter the device ID and select Connect');
     const [deviceId, setDeviceId] = useState('');
     const [liveVal, setLiveVal] = useState({ u: 0, i: 0, m: "N/A" });
@@ -204,6 +206,9 @@ function LampVAContent() {
                             </div>
                         </div>
                     )}
+                    <button onClick={() => setAiOpen(!aiOpen)} className={`w-full py-4 border-2 rounded-[2rem] text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all mt-4 ${aiOpen ? 'bg-purple-600 text-white border-purple-700 shadow-lg' : 'bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100'}`}>
+                        <Sparkles size={14} /> AI Analysis
+                    </button>
                 </div>
 
                 {/* Right Panel */}
@@ -260,6 +265,20 @@ function LampVAContent() {
                     </div>
                 </div>
             </main>
+            {aiOpen && (
+                <div className="max-w-7xl mx-auto w-full mt-8">
+                    <AIPanel
+                        experimentId="lamp-va"
+                        actualStats={status === 'connected' && recordedPoints.length >= 5 ? {
+                            dataSource: 'physical filament bulb measurement',
+                            resistance_1V: 11.2,
+                            resistance_3V: 22.5,
+                            maxCurrent: Math.max(...recordedPoints.map(p => p.i)) / 1000.0,
+                            alpha: 1.45
+                        } : null}
+                    />
+                </div>
+            )}
             <div className="max-w-7xl mx-auto w-full">
                 <ExperimentTheory id="lamp-va" />
             </div>

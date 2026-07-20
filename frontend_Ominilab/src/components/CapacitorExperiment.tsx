@@ -16,10 +16,11 @@ import {
 import { Line, Scatter } from 'react-chartjs-2';
 import {
     Trash2, Globe, Wifi, WifiOff, Cpu, Power, RefreshCw,
-    Eye, EyeOff, Clock, TrendingUp, Zap, Battery
+    Eye, EyeOff, Clock, TrendingUp, Zap, Battery, Sparkles
 } from 'lucide-react';
 import { ExperimentTheory } from './shared/ExperimentTheory';
 import { API_CONFIG } from '../config/api.config';
+import AIPanel from './shared/AIPanel';
 
 ChartJS.register(LinearScale, CategoryScale, PointElement, LineElement, Title, Tooltip, Legend, Filler, ScatterController);
 
@@ -34,6 +35,7 @@ interface DataPoint {
 
 function CapacitorExperimentContent() {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+    const [aiOpen, setAiOpen] = useState(false);
     const [statusMsg, setStatusMsg] = useState('Enter the device ID and select Connect');
     const [deviceId, setDeviceId] = useState('');
     const [isPhysicalSwitchOn, setIsPhysicalSwitchOn] = useState(false);
@@ -385,6 +387,10 @@ function CapacitorExperimentContent() {
                             <div className="flex items-center gap-3"><TrendingUp size={18} /> U–q–W relationship</div>
                             {displayMode === 'relation' && <Zap size={14} fill="white"/>}
                         </button>
+                        <button onClick={() => setAiOpen(!aiOpen)} className={`flex items-center justify-between px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest transition-all ${aiOpen ? 'bg-purple-600 text-white border-purple-700 shadow-lg shadow-purple-100' : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-100'}`}>
+                            <div className="flex items-center gap-3"><Sparkles size={18} /> AI Analysis</div>
+                            {aiOpen && <Zap size={14} fill="white"/>}
+                        </button>
                     </div>
                 </div>
 
@@ -463,7 +469,20 @@ function CapacitorExperimentContent() {
                     </div>
                 </div>
             </main>
-
+            {aiOpen && (
+                <div className="max-w-7xl mx-auto w-full mt-8">
+                    <AIPanel
+                        experimentId="capacitor"
+                        actualStats={status === 'connected' && allPointsRef.current.length >= 50 ? {
+                            dataSource: 'physical capacitor transient measurement',
+                            capacitance: capacitance * 1e-6,
+                            tau: 4.70,
+                            maxVoltage: Math.max(...allPointsRef.current.map(p => p.v)),
+                            storedEnergy: 0.5 * (capacitance * 1e-6) * Math.pow(Math.max(...allPointsRef.current.map(p => p.v)), 2) * 1000.0
+                        } : null}
+                    />
+                </div>
+            )}
             <div className="max-w-7xl mx-auto w-full">
                 <ExperimentTheory id="capacitor" />
             </div>

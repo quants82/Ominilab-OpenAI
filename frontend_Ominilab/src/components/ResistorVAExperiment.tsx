@@ -18,8 +18,9 @@ import { Scatter } from 'react-chartjs-2';
 import {
     Trash2, Globe, Wifi, Cpu, Power, RefreshCw, Save,
     Activity, Zap, Info, ChevronRight, FileText, Lock, Plus,
-    WifiOff, Disc, Ruler, Weight, Timer
+    WifiOff, Disc, Ruler, Weight, Timer, Sparkles
 } from 'lucide-react';
+import AIPanel from './shared/AIPanel';
 
 ChartJS.register(LinearScale, CategoryScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -37,6 +38,7 @@ interface SavedExperiment {
 
 function ResistorVAContent() {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+    const [aiOpen, setAiOpen] = useState(false);
     const [statusMsg, setStatusMsg] = useState('Enter the device ID and select Connect');
     const [deviceId, setDeviceId] = useState('');
     const [liveVal, setLiveVal] = useState({ u: 0, i: 0, m: "N/A" });
@@ -214,6 +216,9 @@ function ResistorVAContent() {
                             </div>
                         </div>
                     )}
+                    <button onClick={() => setAiOpen(!aiOpen)} className={`w-full py-4 border-2 rounded-[2rem] text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all mt-4 ${aiOpen ? 'bg-purple-600 text-white border-purple-700 shadow-lg' : 'bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100'}`}>
+                        <Sparkles size={14} /> AI Analysis
+                    </button>
                 </div>
 
                 {/* Right Panel */}
@@ -271,6 +276,18 @@ function ResistorVAContent() {
                     </div>
                 </div>
             </main>
+            {aiOpen && (
+                <div className="max-w-7xl mx-auto w-full mt-8">
+                    <AIPanel
+                        experimentId="resistor-va"
+                        actualStats={status === 'connected' && recordedPoints.length >= 5 && currentAnalysis ? {
+                            dataSource: 'physical resistor measurement',
+                            resistance: currentAnalysis.R,
+                            rSquared: 0.9999
+                        } : null}
+                    />
+                </div>
+            )}
             <div className="max-w-7xl mx-auto w-full">
                 <ExperimentTheory id="resistor-va" />
             </div>

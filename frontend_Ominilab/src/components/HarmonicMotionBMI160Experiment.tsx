@@ -13,6 +13,7 @@ import {
 import { AuthProvider } from '../contexts/AuthContext';
 import ProtectedLab from './auth/ProtectedLab';
 import { API_CONFIG } from '../config/api.config';
+import AIPanel from './shared/AIPanel';
 
 ChartJS.register(...registerables);
 
@@ -170,34 +171,6 @@ async function callAI(messages: object[], max_tokens = 600): Promise<string> {
     return data.choices?.[0]?.message?.content || '{}';
 }
 
-async function generateAIQuestions(stats: ExperimentStats): Promise<AIQuestion[]> {
-    const content = await callAI([
-        {
-            role: 'system',
-            content: `You are a concise physics lab tutor. Create exactly three questions grounded in the measured harmonic-motion data, increasing in Bloom difficulty. Return JSON only: {"questions":[{"level":"easy","text":"..."},{"level":"medium","text":"..."},{"level":"hard","text":"..."}]}`
-        },
-        {
-            role: 'user',
-            content: `Data source: ${stats.dataSource}. Results: T=${stats.period.toFixed(3)}s, f=${stats.frequency.toFixed(3)}Hz, ω=${stats.omega.toFixed(2)}rad/s, A=${stats.amplitude.toFixed(2)}cm, Vmax=${stats.vmax.toFixed(2)}cm/s, amax=${stats.amax.toFixed(3)}m/s²`
-        }
-    ]);
-    const raw = JSON.parse(content);
-    return (raw.questions || []).map((q: any) => ({
-        level: q.level || 'medium', text: q.text || '', answer: '', evaluation: null, evaluating: false
-    }));
-}
-
-async function evaluateAnswer(question: string, answer: string, stats: ExperimentStats) {
-    const content = await callAI([
-        {
-            role: 'system',
-            content: `You are a physics lab tutor. Data source: ${stats.dataSource}. Context: T=${stats.period.toFixed(3)}s, A=${stats.amplitude.toFixed(2)}cm. Evaluate the learner's answer against the supplied run. Return JSON only: {"score":0-10,"feedback":"...","correct":"..."}`
-        },
-        { role: 'user', content: `Question: ${question}\nLearner answer: ${answer}` }
-    ], 300);
-    return JSON.parse(content);
-}
-
 function HarmonicMotionBMI160Content() {
     const [macInput, setMacInput] = useState('');
     const [isConnected, setIsConnected] = useState(false);
@@ -209,9 +182,6 @@ function HarmonicMotionBMI160Content() {
     const [gravAxisLabel, setGravAxisLabel] = useState('auto');
     const [viewMode, setViewMode] = useState<'3T' | '5T' | '10T' | 'ALL'>('5T');
     const [aiOpen, setAiOpen] = useState(false);
-    const [aiQuestions, setAiQuestions] = useState<AIQuestion[]>([]);
-    const [aiLoading, setAiLoading] = useState(false);
-    const [aiError, setAiError] = useState<string | null>(null);
     const [surveyOpen, setSurveyOpen] = useState(false);
     const [surveyMode, setSurveyMode] = useState<'mass' | 'spring'>('mass');
     const [surveyRows, setSurveyRows] = useState<SurveyRow[]>([]);
@@ -462,27 +432,7 @@ function HarmonicMotionBMI160Content() {
         plugins: { legend: { display: false } },
     }), [showX, showV, showA]);
 
-    const handleGenerateAI = async () => {
-        setAiLoading(true);
-        setAiError(null);
-        try { setAiQuestions(await generateAIQuestions(stats)); }
-        catch (err) { setAiError(err instanceof Error ? err.message : 'AI request failed — please try again.'); }
-        finally { setAiLoading(false); }
-    };
 
-    const handleEvaluate = async (idx: number) => {
-        const q = aiQuestions[idx];
-        if (!q.answer.trim()) return;
-        setAiQuestions(prev => prev.map((x, i) => i === idx ? { ...x, evaluating: true } : x));
-        setAiError(null);
-        try {
-            const ev = await evaluateAnswer(q.text, q.answer, stats);
-            setAiQuestions(prev => prev.map((x, i) => i === idx ? { ...x, evaluation: ev, evaluating: false } : x));
-        } catch (err) {
-            setAiError(err instanceof Error ? err.message : 'AI request failed — please try again.');
-            setAiQuestions(prev => prev.map((x, i) => i === idx ? { ...x, evaluating: false } : x));
-        }
-    };
 
     const handleAddSurveyRow = () => {
         const val = parseFloat(paramInput);
@@ -634,61 +584,10 @@ function HarmonicMotionBMI160Content() {
             </main>
             {/* ─── AI Questions Panel ─── */}
             {aiOpen && (
-                <section className="max-w-7xl mx-auto w-full bg-white rounded-3xl border border-amber-200 shadow-sm p-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-base font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                            <Sparkles size={18} className="text-amber-500"/> AI analysis of measured results
-                        </h3>
-                        <button onClick={handleGenerateAI} disabled={aiLoading || dataLog.length < 100 || converging}
-                            className="px-5 py-2 bg-amber-500 text-white rounded-xl text-[11px] font-black uppercase disabled:opacity-40 hover:bg-amber-600 transition-all flex items-center gap-2">
-                            {aiLoading ? <RefreshCw size={14} className="animate-spin"/> : <Sparkles size={14}/>}
-                            {aiLoading ? 'Generating...' : 'Generate questions'}
-                        </button>
-                    </div>
-                    {converging && <p className="text-amber-600 text-xs font-medium mb-4 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2">⚠️ The period has not converged — measure at least six more cycles for accurate questions.</p>}
-                    {aiError && (
-                        <p className="text-rose-700 text-xs font-medium mb-4 bg-rose-50 border border-rose-200 rounded-xl px-4 py-2 flex items-center gap-2">
-                            <AlertCircle size={14} className="flex-shrink-0"/> {aiError}
-                        </p>
-                    )}
-                    {aiQuestions.length === 0 && !aiLoading && (
-                        <p className="text-slate-400 text-sm text-center py-8">Measure at least six cycles, or run the labeled judge demo, then generate Bloom-level questions grounded in the displayed results.</p>
-                    )}
-                    <div className="space-y-6">
-                        {aiQuestions.map((q, i) => {
-                            const levelColor = q.level === 'easy' ? 'bg-emerald-100 text-emerald-700' : q.level === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700';
-                            const levelLabel = q.level === 'easy' ? 'Recall' : q.level === 'medium' ? 'Understand' : 'Apply';
-                            return (
-                                <div key={i} className="border border-slate-100 rounded-2xl p-6 bg-slate-50/50 space-y-3">
-                                    <div className="flex items-start gap-3">
-                                        <span className={`flex-shrink-0 px-2 py-0.5 rounded text-[10px] font-black uppercase ${levelColor}`}>{levelLabel}</span>
-                                        <p className="text-sm text-slate-700 font-medium">{q.text}</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <input value={q.answer}
-                                            onChange={e => setAiQuestions(prev => prev.map((x, j) => j===i ? {...x, answer: e.target.value} : x))}
-                                            placeholder="Enter your answer..."
-                                            className="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm bg-white focus:ring-2 focus:ring-amber-400 outline-none"/>
-                                        <button onClick={() => handleEvaluate(i)} disabled={!q.answer.trim() || q.evaluating}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-xl text-[11px] font-black uppercase disabled:opacity-40 hover:bg-blue-700 transition-all flex items-center gap-1.5">
-                                            {q.evaluating ? <RefreshCw size={12} className="animate-spin"/> : <Send size={12}/>} Evaluate
-                                        </button>
-                                    </div>
-                                    {q.evaluation && (
-                                        <div className={`rounded-xl p-4 text-sm space-y-1 ${q.evaluation.score >= 7 ? 'bg-emerald-50 border border-emerald-100' : 'bg-rose-50 border border-rose-100'}`}>
-                                            <div className="flex items-center gap-2 font-black">
-                                                {q.evaluation.score >= 7 ? <CheckCircle size={14} className="text-emerald-500"/> : <AlertCircle size={14} className="text-rose-500"/>}
-                                                Score: {q.evaluation.score}/10
-                                            </div>
-                                            <p className="text-slate-600">{q.evaluation.feedback}</p>
-                                            {q.evaluation.score < 8 && <p className="text-slate-500 italic text-xs">Suggested answer: {q.evaluation.correct}</p>}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </section>
+                <AIPanel
+                    experimentId="harmonic-motion-bmi160"
+                    actualStats={dataLog.length >= 100 && !converging ? stats : null}
+                />
             )}
 
             {/* ─── Survey Panel ─── */}

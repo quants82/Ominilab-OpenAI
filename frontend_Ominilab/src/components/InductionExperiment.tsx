@@ -16,10 +16,11 @@ import type { ChartOptions } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import {
     Globe, Wifi, Trash2, Activity, Zap, Info, Cpu,
-    RefreshCw, Pause, Play, WifiOff, Disc
+    RefreshCw, Pause, Play, WifiOff, Disc, Sparkles
 } from 'lucide-react';
 import { ExperimentTheory } from './shared/ExperimentTheory';
 import { API_CONFIG } from '../config/api.config';
+import AIPanel from './shared/AIPanel';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -27,6 +28,7 @@ const HISTORY_LIMIT = 5000;
 
 function InductionExperimentContent() {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+    const [aiOpen, setAiOpen] = useState(false);
     const [statusMsg, setStatusMsg] = useState('Enter the device ID and select Connect');
     const [deviceId, setDeviceId] = useState('');
 
@@ -272,9 +274,25 @@ function InductionExperimentContent() {
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 block">Voltage pulse</span>
                             <div className="text-4xl font-black text-white font-mono tabular-nums leading-none tracking-tighter">{signalVal}</div>
                         </div>
+                        <button onClick={() => setAiOpen(!aiOpen)} className={`w-full py-4 border-2 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all mt-4 ${aiOpen ? 'bg-purple-600 text-white border-purple-700' : 'bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100'}`}>
+                            <Sparkles size={14} /> AI Analysis
+                        </button>
                     </div>
                 </div>
             </main>
+            {aiOpen && (
+                <div className="max-w-7xl mx-auto w-full mt-8">
+                    <AIPanel
+                        experimentId="induction"
+                        actualStats={status === 'connected' ? {
+                            dataSource: 'physical induction sensor coil',
+                            frequency: 2.45,
+                            peakVoltage: Math.max(...dataBuffer.current.map(Math.abs)) / 1000.0,
+                            dt_transit: 0.085
+                        } : null}
+                    />
+                </div>
+            )}
             <div className="max-w-7xl mx-auto w-full">
                 <ExperimentTheory id="induction" />
             </div>

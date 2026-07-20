@@ -7,8 +7,9 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { Scatter } from 'react-chartjs-2';
 // @ts-ignore
 import regression from 'regression';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Sparkles } from 'lucide-react';
 import { API_CONFIG } from '../config/api.config';
+import AIPanel from './shared/AIPanel';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ScatterController, LineController);
 
@@ -34,6 +35,7 @@ function SpecificHeatExperiment() {
 
     // Records
     const [recordedPoints, setRecordedPoints] = useState<HeatData[]>([]);
+    const [aiOpen, setAiOpen] = useState(false);
 
     // Connection Status Log
     const [wsStatus, setWsStatus] = useState("Enter the device ID and select Connect");
@@ -273,6 +275,9 @@ function SpecificHeatExperiment() {
                             <button onClick={handleRecord} className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-gray-900 font-bold rounded-xl shadow-lg flex items-center justify-center gap-2">
                                 <Plus className="w-5 h-5" /> RECORD MEASUREMENT
                             </button>
+                            <button onClick={() => setAiOpen(!aiOpen)} className={`w-full py-4 border-2 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${aiOpen ? 'bg-purple-600 text-white border-purple-700' : 'bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100'}`}>
+                                <Sparkles className="w-4 h-4" /> AI Analysis
+                            </button>
                         </div>
                         {analysis && (
                             <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl shadow-sm">
@@ -323,6 +328,21 @@ function SpecificHeatExperiment() {
                         </div>
                     </div>
                 </div>
+                {/* ─── AI Questions Panel ─── */}
+                {aiOpen && (
+                    <div className="mt-8">
+                        <AIPanel
+                            experimentId="specific-heat"
+                            actualStats={recordedPoints.length >= 5 && analysis ? {
+                                dataSource: 'physical calorimeter measurement',
+                                massWater,
+                                avgPower: analysis.avgPower,
+                                slope: analysis.slope,
+                                c_calc: analysis.c_calc
+                            } : null}
+                        />
+                    </div>
+                )}
                 <ExperimentTheory id="specific-heat" />
             </div>
         </div>
