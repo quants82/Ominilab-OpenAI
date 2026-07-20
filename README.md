@@ -8,6 +8,12 @@
 
 Ominilab turns low-cost ESP32 kits into open physics labs graded by real data: flash open MicroPython from the browser, stream real sensor data live, and let GPT-5.6 generate and grade questions grounded in the experiment you actually performed.
 
+## 💡 AI Integration: Codex & GPT-5.6
+
+Ominilab was developed during the **OpenAI Build Week 2026** in close collaboration with AI:
+* **Codex** served as the engineering co-pilot, assisting in scoped refactoring, FastAPI backend creation, WebSerial and WebSocket relay implementation, deployment workflows, and codebase integration.
+* **GPT-5.6** powers the student learning loop in real-time. It takes physical data stats (e.g. oscillation frequency, water mass, current curve) dynamically computed from your ESP32 measurements, creates 3 Bloom-taxonomy physics questions, and evaluates your answers on the spot.
+
 ## Judge in 60 seconds
 
 - Live product: [https://ominilab.vatli365.vn](https://ominilab.vatli365.vn)
@@ -94,8 +100,8 @@ Codex accelerated cross-layer tracing, implementation, debugging, command genera
 
 ### Distinct roles of Codex and GPT-5.6
 
-- **Codex helped build Ominilab:** repository audit, scoped refactoring, backend/frontend work, debugging, tests, deployment automation, migration planning, and judge-facing evidence.
-- **GPT-5.6 is part of the running learning experience:** the harmonic-motion lab sends the declared data source and run statistics—period, frequency, angular frequency, amplitude, maximum velocity, and maximum acceleration—to the backend. GPT-5.6 generates leveled questions and evaluates a learner's answer against that specific run.
+- **Codex helped build Ominilab:** repository audit, scoped refactoring, backend/frontend work, debugging, tests, deployment automation, migration planning, and integration of the unified premium AIPanel.
+- **GPT-5.6 is part of the running learning experience:** the backend receives real or simulated data statistics (e.g., period/amplitude for harmonic-motion, calorimeter heating parameters for specific heat, induction coil parameters, capacitor transient curves, or lamp/resistor V-A characteristics). GPT-5.6 then generates leveled questions and evaluates student answers directly against their actual physical or simulated results.
 - **The browser cannot choose another model:** the API key and `OPENAI_MODEL=gpt-5.6` remain server-side, and the [backend contract test](./backend_Ominilab/tests/test_smoke.py) verifies that a browser-supplied model value cannot override the configured model.
 
 The more detailed chronological account, including the pre-existing/new-work boundary, is in [`docs/BUILD_WEEK_DELTA.md`](./docs/BUILD_WEEK_DELTA.md). The primary Codex `/feedback` Session ID is listed under **Competition evidence** below.
@@ -178,7 +184,7 @@ Before committing:
 
 Primary Codex `/feedback` Session ID: **`019f7484-26c0-7c91-b955-b437da0e7170`**
 
-Public YouTube demo: **`[REQUIRED BEFORE SUBMISSION]`**
+Public YouTube demo: [https://youtu.be/ctjzPu_POAo](https://youtu.be/ctjzPu_POAo)
 
 ## License
 

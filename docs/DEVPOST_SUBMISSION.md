@@ -19,7 +19,7 @@ Education
 - Live demo: https://ominilab.vatli365.vn
 - Repository: https://github.com/quants82/Ominilab-OpenAI
 - Public API: https://ominilab.vatli365.vn/docs
-- YouTube demo: `[PUBLIC YOUTUBE URL]`
+- YouTube demo: https://youtu.be/ctjzPu_POAo
 - Primary Codex `/feedback` Session ID: `019f7484-26c0-7c91-b955-b437da0e7170`
 
 ## Inspiration
