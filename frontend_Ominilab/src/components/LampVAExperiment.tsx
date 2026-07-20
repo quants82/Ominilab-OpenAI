@@ -98,14 +98,14 @@ function LampVAContent() {
         setStatus('disconnected');
         setStatusMsg('Synthetic Replay Running');
         setRecordedPoints([
-            { id: 1, u: 0.5, i: 25.0 },
-            { id: 2, u: 1.0, i: 50.0 },
-            { id: 3, u: 2.0, i: 110.0 },
-            { id: 4, u: 3.0, i: 180.0 },
-            { id: 5, u: 4.0, i: 260.0 },
-            { id: 6, u: 5.0, i: 350.0 }
+            { id: 1, u: 0.5, i: 50.0 },
+            { id: 2, u: 1.0, i: 90.0 },
+            { id: 3, u: 2.0, i: 160.0 },
+            { id: 4, u: 3.0, i: 210.0 },
+            { id: 5, u: 4.0, i: 250.0 },
+            { id: 6, u: 5.0, i: 280.0 }
         ]);
-        setLiveVal({ u: 5.0, i: 350.0, m: "synthetic" });
+        setLiveVal({ u: 5.0, i: 280.0, m: "synthetic" });
     };
 
     const stopDemo = () => {

@@ -44,10 +44,10 @@ function CapacitorExperimentContent() {
     const [isDemoMode, setIsDemoMode] = useState(false);
     const demoTimer = useRef<any>(null);
 
-    // MẶC ĐỊNH: Chỉ hiện q theo t
-    const [showU, setShowU] = useState(false);
+    // MẶC ĐỊNH: Hiện cả U, q, W
+    const [showU, setShowU] = useState(true);
     const [showQ, setShowQ] = useState(true);
-    const [showW, setShowW] = useState(false);
+    const [showW, setShowW] = useState(true);
 
     const [displayMode, setDisplayMode] = useState<'time' | 'relation'>('time');
 
@@ -164,6 +164,9 @@ function CapacitorExperimentContent() {
         setIsDemoMode(true);
         setStatus('disconnected');
         setStatusMsg('Synthetic Replay Running');
+        setShowU(true);
+        setShowQ(true);
+        setShowW(true);
         allPointsRef.current = [];
         relationPointsRef.current = [];
         startTimeRef.current = Date.now();
@@ -202,9 +205,13 @@ function CapacitorExperimentContent() {
 
             const p: DataPoint = { x: elapsed, v, i, sw, q, w };
             allPointsRef.current.push(p);
+            relationPointsRef.current.push(p);
 
             if (allPointsRef.current.length > 500) {
                 allPointsRef.current.shift();
+            }
+            if (relationPointsRef.current.length > 500) {
+                relationPointsRef.current.shift();
             }
 
             setLiveVal({ v, i, w });
