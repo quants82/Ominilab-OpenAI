@@ -10,9 +10,16 @@ Ominilab turns low-cost ESP32 kits into open physics labs graded by real data: f
 
 ## 💡 AI Integration: Codex & GPT-5.6
 
-Ominilab was developed during the **OpenAI Build Week 2026** in close collaboration with AI:
-* **Codex** served as the engineering co-pilot, assisting in scoped refactoring, FastAPI backend creation, WebSerial and WebSocket relay implementation, deployment workflows, and codebase integration.
-* **GPT-5.6** powers the student learning loop in real-time. It takes physical data stats (e.g. oscillation frequency, water mass, current curve) dynamically computed from your ESP32 measurements, creates 3 Bloom-taxonomy physics questions, and evaluates your answers on the spot.
+Ominilab was developed during the **OpenAI Build Week 2026** in close, structured collaboration with AI:
+
+* **Codex (Engineering & Architecture Co-pilot):** Served as the primary development partner. Rather than a simple code generator, Codex acted as a systems engineer that translated human-driven conceptual ideas into robust, cross-layer implementations. The human defined the overarching architecture, hardware constraints, naming guidelines, and deployment targets. Codex then:
+  * Traced dependencies across the pre-existing codebase to isolate and refactor Ominilab into a clean, standalone product.
+  * Generated detailed FastAPI schemas, SQLite migrations, JWT authentication routes, and unified WebSocket relays from the human's abstract specifications.
+  * Implemented secure browser-based WebSerial flashing for MicroPython firmware.
+  * Designed robust, automated deployment scripts (`check-local.ps1`, systemd service managers, Nginx configurations) to ensure deployment reliability.
+* **GPT-5.6 (Real-time Physics Tutor & Grader):** Powering the interactive student learning loop. GPT-5.6 is grounded directly in the physical evidence gathered by the student's own ESP32 apparatus. When an experiment is conducted (or replayed in demo mode), the backend computes key physical statistics (such as oscillation period and damping, specific heat values, induction transit curves, capacitor transient properties, or lamp non-linear I-V characteristics). GPT-5.6 then:
+  * Generates 3 leveled, custom questions following the Bloom taxonomy (Recall, Understand, Apply) specifically tailored to the active dataset's numerical variables.
+  * Evaluates student answers, detecting calculation errors and checking for unit compliance, and provides instant, constructive feedback instead of generic hints.
 
 ## Judge in 60 seconds
 
